@@ -30,37 +30,57 @@ std::string BfTranspiler::token_trans(const bftoken t, int &i) {
 
   switch (t.type) {
     case '>':
-      ss << "memory_ptr += " << t.amount << ";\n";
+      if (t.amount != 1) {
+        ss << "ptr += " << t.amount << ";\n";
+      }
+      else {
+        ss << "ptr--;\n";
+      }
 
       return ss.str();
       
     case '<':
-      ss << "memory_ptr -= " << t.amount << ";\n";
+      if (t.amount != 1) {
+        ss << "ptr -= " << t.amount << ";\n";
+      }
+      else {
+        ss << "ptr--;\n";
+      }
 
       return ss.str();
 
     case '+':
-      ss << "memory[memory_ptr] += " << t.amount << ";\n";
+      if (t.amount != 1) {
+        ss << "mem[ptr] += " << t.amount << ";\n";
+      }
+      else {
+        ss << "mem[ptr]++;\n";
+      }
 
       return ss.str();
 
     case '-':
-      ss << "memory[memory_ptr] -= " << t.amount << ";\n";
+      if (t.amount != 1) {
+        ss << "mem[ptr] -= " << t.amount << ";\n";
+      }
+      else {
+        ss << "mem[ptr]--;\n";
+      }
 
       return ss.str();
 
     case '.':
-      ss << "putchar(memory[memory_ptr]);\n";
+      ss << "putchar(mem[ptr]);\n";
 
       return ss.str();
 
     case ',':
-      ss << "scanf(\" %c\", &c);\n" << std::string(i, ' ') << "memory[memory_ptr] = c;\n";
+      ss << "scanf(\" %c\", &c);\n" << std::string(i, ' ') << "mem[ptr] = c;\n";
 
       return ss.str();
 
     case '[':
-      ss << "while (memory[memory_ptr] != 0) {\n";
+      ss << "while (mem[ptr] != 0) {\n";
       i += 2;
       
       return ss.str(); 

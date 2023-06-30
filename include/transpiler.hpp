@@ -4,26 +4,21 @@
 #include <vector>
 
 #define TEMPLATE_CREDITS \
-"/* THE FOLLOWING SOURCE FILE WAS AUTOMATICALLY GENERATED USING https://github.com/Nanrech/brainfuck-transpiler */\n"
+"/* THE FOLLOWING SOURCE FILE WAS AUTOMATICALLY GENERATED USING https://github.com/Nanrech/brainfuck-transpiler */\n\n"
 
 #define TEMPLATE_A \
 "#include <stdio.h>\n\
 #include <stdlib.h>\n\n\n\
-#define TAPE_LENGTH 30000\n\n\
+#define TAPE_LENGTH 30000 // As per https://esolangs.org/wiki/brainfuck\n\n\
 int main(void) {\n\
-  // uchar alias\n\
-  typedef unsigned char uchar;\n\
-  // Mandatory input char\n\
-  uchar c;\n\
-  // Pointer\n\
-  int memory_ptr = 0;\n\
-  // Tape\n\
-  uchar* memory = calloc(TAPE_LENGTH, sizeof(uchar));\n\n\
+  int ptr = 0;\n\
+  unsigned char c;\n\
+  unsigned char* mem = calloc(TAPE_LENGTH, sizeof(unsigned char));\n\n\
   /* BEGIN GENERATED CODE */\n\n"
 
 #define TEMPLATE_B \
 "\n  /* END GENERATED CODE */\n\
-  free(memory);\n\
+  free(mem);\n\
   return 0;\n\
 }\n"
 
