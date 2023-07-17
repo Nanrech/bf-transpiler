@@ -34,7 +34,7 @@ std::string BfTranspiler::token_trans(const bftoken t, int &i) {
         ss << "ptr += " << t.amount << ";\n";
       }
       else {
-        ss << "ptr--;\n";
+        ss << "ptr++;\n";
       }
 
       return ss.str();
