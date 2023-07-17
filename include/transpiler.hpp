@@ -11,9 +11,9 @@
 #include <stdlib.h>\n\n\n\
 #define TAPE_LENGTH 30000 // As per https://esolangs.org/wiki/brainfuck\n\n\
 int main(void) {\n\
-  int ptr = 0;\n\
   unsigned char c;\n\
   unsigned char* mem = calloc(TAPE_LENGTH, sizeof(unsigned char));\n\n\
+  int ptr = 0;\n\
   /* BEGIN GENERATED CODE */\n\n"
 
 #define TEMPLATE_B \
