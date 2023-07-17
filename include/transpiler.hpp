@@ -30,6 +30,6 @@ typedef struct {
 class BfTranspiler {
   public:
     bool is_opcode(const char c);
-    std::string token_trans(const bftoken t, int &i);
+    std::string token_trans(const bftoken token, int &indent);
     void trans(std::ifstream &in_file, std::ostream &out_file);
 };

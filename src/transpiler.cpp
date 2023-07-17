@@ -21,17 +21,17 @@ bool BfTranspiler::is_opcode(const char c) {
   return false;
 }
 
-std::string BfTranspiler::token_trans(const bftoken t, int &i) {
+std::string BfTranspiler::token_trans(const bftoken token, int &indent) {
   // I hear C++20 is gonna have proper string interpolation...
   std::stringstream ss;
   // Might as well add indent here. If it's a closing bracket we don't wanna have extra indent
-  if (t.type != ']')
-    ss << std::string(i, ' ');
+  if (token.type != ']')
+    ss << std::string(indent, ' ');
 
-  switch (t.type) {
+  switch (token.type) {
     case '>':
-      if (t.amount != 1) {
-        ss << "ptr += " << t.amount << ";\n";
+      if (token.amount != 1) {
+        ss << "ptr += " << token.amount << ";\n";
       }
       else {
         ss << "ptr++;\n";
@@ -40,8 +40,8 @@ std::string BfTranspiler::token_trans(const bftoken t, int &i) {
       return ss.str();
       
     case '<':
-      if (t.amount != 1) {
-        ss << "ptr -= " << t.amount << ";\n";
+      if (token.amount != 1) {
+        ss << "ptr -= " << token.amount << ";\n";
       }
       else {
         ss << "ptr--;\n";
@@ -50,8 +50,8 @@ std::string BfTranspiler::token_trans(const bftoken t, int &i) {
       return ss.str();
 
     case '+':
-      if (t.amount != 1) {
-        ss << "mem[ptr] += " << t.amount << ";\n";
+      if (token.amount != 1) {
+        ss << "mem[ptr] += " << token.amount << ";\n";
       }
       else {
         ss << "mem[ptr]++;\n";
@@ -60,8 +60,8 @@ std::string BfTranspiler::token_trans(const bftoken t, int &i) {
       return ss.str();
 
     case '-':
-      if (t.amount != 1) {
-        ss << "mem[ptr] -= " << t.amount << ";\n";
+      if (token.amount != 1) {
+        ss << "mem[ptr] -= " << token.amount << ";\n";
       }
       else {
         ss << "mem[ptr]--;\n";
@@ -75,19 +75,19 @@ std::string BfTranspiler::token_trans(const bftoken t, int &i) {
       return ss.str();
 
     case ',':
-      ss << "scanf(\" %c\", &c);\n" << std::string(i, ' ') << "mem[ptr] = c;\n";
+      ss << "scanf(\" %c\", &c);\n" << std::string(indent, ' ') << "mem[ptr] = c;\n";
 
       return ss.str();
 
     case '[':
       ss << "while (mem[ptr] != 0) {\n";
-      i += 2;
+      indent += 2;
       
       return ss.str(); 
 
     case ']':
-      i -= 2;
-      ss << std::string(i, ' ') << "}\n";
+      indent -= 2;
+      ss << std::string(indent, ' ') << "}\n";
 
       return ss.str();
 
