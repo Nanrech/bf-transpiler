@@ -1,4 +1,4 @@
-#include "transpiler.hpp"
+#include "transpiler.h"
 
 
 bool BfTranspiler::is_opcode(const char c) {

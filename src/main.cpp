@@ -1,6 +1,6 @@
 #include <iostream>
 #include <vector>
-#include "transpiler.hpp"
+#include "transpiler.h"
 
 #define OUTFILE "out.c"
 
