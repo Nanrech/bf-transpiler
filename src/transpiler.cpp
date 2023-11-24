@@ -2,22 +2,11 @@
 
 
 bool BfTranspiler::is_opcode(const char c) {
-  char op_arr[] = {
-    '>',
-    '<',
-    '+',
-    '-',
-    '.',
-    ',',
-    '[',
-    ']'
-  };
-  
-  for (int i = 0; i <= 8; i++) {
-    if (op_arr[i] == c)
+  for (char i : {'>', '<', '+', '-', '.', '[', ']'}) {
+    if (i == c) {
       return true;
+    }
   }
-
   return false;
 }
 
