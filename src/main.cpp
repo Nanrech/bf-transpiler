@@ -32,7 +32,6 @@ int main(int argc, char** argv) {
   }
 
 
-  // Don't @ me
   out_file << TEMPLATE_CREDITS;
   out_file << TEMPLATE_A;
   Transpiler.trans(in_file, out_file);
