@@ -2,9 +2,9 @@ CC = g++
 
 SRC_DIR = src
 INC_DIR = include
-OBJ_DIR = bin/obj
+OBJ_DIR = obj
 
-EXE = bin/bft
+EXE = bft
 CFLAGS = -I$(INC_DIR) -Wall -Wfatal-errors -Wextra -Werror -MMD -MP
 
 SRC = $(wildcard $(SRC_DIR)/*.cpp)
