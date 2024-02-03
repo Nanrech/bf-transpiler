@@ -1,5 +1,7 @@
 #include "transpiler.h"
 
+using namespace std;
+
 
 bool BfTranspiler::is_opcode(const char c) {
   for (char i : {'>', '<', '+', '-', '.', '[', ']'}) {
@@ -10,15 +12,15 @@ bool BfTranspiler::is_opcode(const char c) {
   return false;
 }
 
-std::string BfTranspiler::token_trans(const bftoken token, int &indent) {
+string BfTranspiler::token_trans(const BfToken token, int &indent) {
   // I hear C++20 is gonna have proper string interpolation...
-  std::stringstream ss;
+  stringstream ss;
   // Might as well add indent here. If it's a closing bracket we don't wanna have extra indent
-  if (token.type != ']')
-    ss << std::string(indent, ' ');
+  if (token.type != BRC)
+    ss << string(indent, ' ');
 
   switch (token.type) {
-    case '>':
+    case MOVR:
       if (token.amount != 1) {
         ss << "ptr += " << token.amount << ";\n";
       }
@@ -28,7 +30,7 @@ std::string BfTranspiler::token_trans(const bftoken token, int &indent) {
 
       return ss.str();
       
-    case '<':
+    case MOVL:
       if (token.amount != 1) {
         ss << "ptr -= " << token.amount << ";\n";
       }
@@ -38,7 +40,7 @@ std::string BfTranspiler::token_trans(const bftoken token, int &indent) {
 
       return ss.str();
 
-    case '+':
+    case INC:
       if (token.amount != 1) {
         ss << "mem[ptr] += " << token.amount << ";\n";
       }
@@ -48,7 +50,7 @@ std::string BfTranspiler::token_trans(const bftoken token, int &indent) {
 
       return ss.str();
 
-    case '-':
+    case DEC:
       if (token.amount != 1) {
         ss << "mem[ptr] -= " << token.amount << ";\n";
       }
@@ -58,25 +60,25 @@ std::string BfTranspiler::token_trans(const bftoken token, int &indent) {
 
       return ss.str();
 
-    case '.':
+    case OUT:
       ss << "putchar(mem[ptr]);\n";
 
       return ss.str();
 
-    case ',':
-      ss << "scanf(\" %c\", &c);\n" << std::string(indent, ' ') << "mem[ptr] = c;\n";
+    case INP:
+      ss << "scanf(\" %c\", &c);\n" << string(indent, ' ') << "mem[ptr] = c;\n";
 
       return ss.str();
 
-    case '[':
+    case BRO:
       ss << "while (mem[ptr] != 0) {\n";
       indent += 2;
       
       return ss.str(); 
 
-    case ']':
+    case BRC:
       indent -= 2;
-      ss << std::string(indent, ' ') << "}\n";
+      ss << string(indent, ' ') << "}\n";
 
       return ss.str();
 
@@ -86,9 +88,9 @@ std::string BfTranspiler::token_trans(const bftoken token, int &indent) {
   return "[]\n";
 }
 
-void BfTranspiler::trans(std::ifstream &in_file, std::ostream &out_file) {
-  std::vector<char> characters;
-  std::vector<bftoken> tokens;
+void BfTranspiler::trans(ifstream &in_file, ostream &out_file) {
+  vector<char> characters;
+  vector<BfToken> tokens;
   char c;
 
   while (in_file.get(c)) {
@@ -98,19 +100,19 @@ void BfTranspiler::trans(std::ifstream &in_file, std::ostream &out_file) {
   }
 
   for (char c : characters) {
-    if (tokens.size() == 0 || c == '[' || c == ']' || c == '.' || c == ',') tokens.push_back(bftoken{c, 0});
+    if (tokens.size() == 0 || c == '[' || c == ']' || c == '.' || c == ',') tokens.push_back(BfToken{0, c});
 
     if (tokens.back().type == c) {
       tokens.back().amount++;
     }
     else {
-      tokens.push_back(bftoken{c, 1});
+      tokens.push_back(BfToken{1, c});
     }
   }
   
   int indent = 2;
   for (auto t : tokens) {
-    // std::cout << "{ '" << t.type << "', " << t.amount << " }" << std::endl;
+    // cout << "{ '" << t.type << "', " << t.amount << " }" << endl;
     out_file << token_trans(t, indent);    
   }
 }

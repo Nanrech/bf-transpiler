@@ -22,14 +22,30 @@ int main(void) {\n\
   return 0;\n\
 }\n"
 
+using namespace std;
+
+
+enum {
+  MOVR = '>',
+  MOVL = '<',
+  INC = '+',
+  DEC = '-' ,
+  OUT = '.',
+  INP = ',',
+  BRO = '[',
+  BRC = ']'
+};
+
 typedef struct {
+  // Number of repeat instructions OR 0
+  unsigned int amount;
+  // BfTokenType
   char type;
-  int amount;
-} bftoken;
+} BfToken;
 
 class BfTranspiler {
   public:
     bool is_opcode(const char c);
-    std::string token_trans(const bftoken token, int &indent);
+    std::string token_trans(const BfToken token, int &indent);
     void trans(std::ifstream &in_file, std::ostream &out_file);
 };
