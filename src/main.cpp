@@ -6,6 +6,7 @@
 
 using namespace std;
 
+
 int main(int argc, char** argv) {
   if (argc != 2) {
     cout << "Usage: '.\\bft.exe <program.bf>'. Missing bf file." << endl;
@@ -22,7 +23,7 @@ int main(int argc, char** argv) {
       cout << "Could not read from " << argv[1] << endl;
     }
     if (out_file.fail()) {
-      cout << "Could not create/open output file" << endl;
+      cout << "Could not create/open output file " << OUTFILE << endl;
     }
     
     in_file.close();
