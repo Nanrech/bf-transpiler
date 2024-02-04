@@ -16,11 +16,11 @@ string BfTranspiler::token_trans(const BfToken token, int &indent) {
   // I hear C++20 is gonna have proper string interpolation...
   stringstream ss;
   // Might as well add indent here. If it's a closing bracket we don't wanna have extra indent
-  if (token.type != BRC)
+  if (token.type != BFT_BRC)
     ss << string(indent, ' ');
 
   switch (token.type) {
-    case MOVR:
+    case BFT_MOVR:
       if (token.amount != 1) {
         ss << "ptr += " << token.amount << ";\n";
       }
@@ -30,7 +30,7 @@ string BfTranspiler::token_trans(const BfToken token, int &indent) {
 
       return ss.str();
       
-    case MOVL:
+    case BFT_MOVL:
       if (token.amount != 1) {
         ss << "ptr -= " << token.amount << ";\n";
       }
@@ -40,7 +40,7 @@ string BfTranspiler::token_trans(const BfToken token, int &indent) {
 
       return ss.str();
 
-    case INC:
+    case BFT_INC:
       if (token.amount != 1) {
         ss << "mem[ptr] += " << token.amount << ";\n";
       }
@@ -50,7 +50,7 @@ string BfTranspiler::token_trans(const BfToken token, int &indent) {
 
       return ss.str();
 
-    case DEC:
+    case BFT_DEC:
       if (token.amount != 1) {
         ss << "mem[ptr] -= " << token.amount << ";\n";
       }
@@ -60,23 +60,23 @@ string BfTranspiler::token_trans(const BfToken token, int &indent) {
 
       return ss.str();
 
-    case OUT:
+    case BFT_OUT:
       ss << "putchar(mem[ptr]);\n";
 
       return ss.str();
 
-    case INP:
+    case BFT_INP:
       ss << "scanf(\" %c\", &c);\n" << string(indent, ' ') << "mem[ptr] = c;\n";
 
       return ss.str();
 
-    case BRO:
+    case BFT_BRO:
       ss << "while (mem[ptr] != 0) {\n";
       indent += 2;
       
       return ss.str(); 
 
-    case BRC:
+    case BFT_BRC:
       indent -= 2;
       ss << string(indent, ' ') << "}\n";
 

@@ -26,14 +26,14 @@ using namespace std;
 
 
 enum {
-  MOVR = '>',
-  MOVL = '<',
-  INC = '+',
-  DEC = '-' ,
-  OUT = '.',
-  INP = ',',
-  BRO = '[',
-  BRC = ']'
+  BFT_MOVR = '>',
+  BFT_MOVL = '<',
+  BFT_INC = '+',
+  BFT_DEC = '-' ,
+  BFT_OUT = '.',
+  BFT_INP = ',',
+  BFT_BRO = '[',
+  BFT_BRC = ']'
 };
 
 typedef struct {
