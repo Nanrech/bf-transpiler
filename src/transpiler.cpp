@@ -3,116 +3,135 @@
 using namespace std;
 
 
-bool BfTranspiler::is_opcode(const char c) {
-  for (char i : {'>', '<', '+', '-', '.', '[', ']'}) {
-    if (i == c) {
-      return true;
+void BfTranspiler::transpile(ofstream &out_file) {
+  int indent = 2;  // 2 space indentation by default
+
+  for (tokens_pointer = 0; tokens_pointer <= tokens.size() - 1; tokens_pointer++) {
+    BfToken current_token = tokens[tokens_pointer];
+    out_file << string(indent, ' ');
+
+    switch (current_token.type) {
+      case '>':
+        if (current_token.amount == 1) {
+          out_file << "ptr++;" << endl;
+          break;
+        }
+        out_file << "ptr += " << current_token.amount << ";" << endl;
+        break;
+
+      case '<':
+        // This compiler does not report coding errors
+        if (current_token.amount == 1) {
+          out_file << "ptr--;" << endl;
+          break;
+        }
+        out_file << "ptr -= " << current_token.amount << ";" << endl;
+        break;
+
+      case '+':
+        if (current_token.amount == 1) {
+          out_file << "mem[ptr]++;" << endl;
+          break;
+        }
+        out_file << "mem[ptr] += " << current_token.amount << ";" << endl;
+        break;
+
+      case '-':
+        if (current_token.amount == 1) {
+          out_file << "mem[ptr]--;" << endl;
+          break;
+        }
+        out_file << "mem[ptr] -= " << current_token.amount << ";" << endl;
+        break;
+
+      case '.':
+        out_file << "putchar(mem[ptr]);" << endl;
+        break;
+
+      case ',':
+        out_file << "scanf(\"%c\", &c);" << endl << string(indent, ' ') << "mem[ptr] = c;" << endl;
+        break;
+
+      case '[':
+        out_file << "while (mem[ptr] != 0) {" << endl;
+        indent += 2;
+        break;
+
+      case ']':
+        out_file.seekp(-2, ios_base::cur);
+        out_file << "}" << endl;
+        indent -= 2;
+        break;
+
+      default:
+        break;
     }
-  }
-  return false;
-}
-
-string BfTranspiler::token_trans(const BfToken token, int &indent) {
-  // I hear C++20 is gonna have proper string interpolation...
-  stringstream ss;
-  // Might as well add indent here. If it's a closing bracket we don't wanna have extra indent
-  if (token.type != BFT_BRC)
-    ss << string(indent, ' ');
-
-  switch (token.type) {
-    case BFT_MOVR:
-      if (token.amount != 1) {
-        ss << "ptr += " << token.amount << ";\n";
-      }
-      else {
-        ss << "ptr++;\n";
-      }
-
-      return ss.str();
-      
-    case BFT_MOVL:
-      if (token.amount != 1) {
-        ss << "ptr -= " << token.amount << ";\n";
-      }
-      else {
-        ss << "ptr--;\n";
-      }
-
-      return ss.str();
-
-    case BFT_INC:
-      if (token.amount != 1) {
-        ss << "mem[ptr] += " << token.amount << ";\n";
-      }
-      else {
-        ss << "mem[ptr]++;\n";
-      }
-
-      return ss.str();
-
-    case BFT_DEC:
-      if (token.amount != 1) {
-        ss << "mem[ptr] -= " << token.amount << ";\n";
-      }
-      else {
-        ss << "mem[ptr]--;\n";
-      }
-
-      return ss.str();
-
-    case BFT_OUT:
-      ss << "putchar(mem[ptr]);\n";
-
-      return ss.str();
-
-    case BFT_INP:
-      ss << "scanf(\" %c\", &c);\n" << string(indent, ' ') << "mem[ptr] = c;\n";
-
-      return ss.str();
-
-    case BFT_BRO:
-      ss << "while (mem[ptr] != 0) {\n";
-      indent += 2;
-      
-      return ss.str(); 
-
-    case BFT_BRC:
-      indent -= 2;
-      ss << string(indent, ' ') << "}\n";
-
-      return ss.str();
-
-    default:
-      break;
-  }
-  return "[]\n";
-}
-
-void BfTranspiler::trans(ifstream &in_file, ostream &out_file) {
-  vector<char> characters;
-  vector<BfToken> tokens;
-  char c;
-
-  while (in_file.get(c)) {
-    if (is_opcode(c)) {
-      characters.insert(characters.end(), c);
-    }
-  }
-
-  for (char c : characters) {
-    if (tokens.size() == 0 || c == '[' || c == ']' || c == '.' || c == ',') tokens.push_back(BfToken{0, c});
-
-    if (tokens.back().type == c) {
-      tokens.back().amount++;
-    }
-    else {
-      tokens.push_back(BfToken{1, c});
-    }
-  }
-  
-  int indent = 2;
-  for (auto t : tokens) {
-    // cout << "{ '" << t.type << "', " << t.amount << " }" << endl;
-    out_file << token_trans(t, indent);    
   }
 }
+/*
+inline void BfTranspiler::move_right() {
+  // Move .amount to the right. If the tape is too small, expand it
+  unsigned int token_amount = tokens[tokens_pointer].amount;
+
+  if ((tape_pointer + token_amount) >= tape.size()) {
+    for (unsigned int _ = 0; _ < token_amount; _++) {
+      tape_pointer++;
+      tape.push_back(0);
+    }
+  }
+  else {
+    for (unsigned int _ = 0; _ < token_amount; _++) {
+      tape_pointer++;
+    }
+  }
+}
+
+inline void BfTranspiler::move_left() {
+  // Move .amount to the left. No negative index allowed
+  unsigned int token_amount = tokens[tokens_pointer].amount;
+  // "error: cOmPaRiSoN oF uNsIgNeD eXpReSsIoN iN '>= 0' iS aLwAyS tRuE" 🤓☝
+  // error here bc tape_pointer and token.amount are both unsigned so they'd wrap around
+  int diff = tape_pointer - token_amount;
+
+  if (diff >= 0) {
+    tape_pointer -= token_amount;
+  }
+  else {
+    tape_pointer = 0;
+  }
+}
+
+inline void BfTranspiler::increment() {
+  tape[tape_pointer] += tokens[tokens_pointer].amount;
+}
+
+inline void BfTranspiler::decrement() {
+  tape[tape_pointer] -= tokens[tokens_pointer].amount;
+}
+
+inline void BfTranspiler::output() {
+  cout << tape[tape_pointer];
+}
+
+inline void BfTranspiler::input() {
+  cin >> tape[tape_pointer];
+}
+
+inline void BfTranspiler::bracket_open() {
+  if (tape[tape_pointer] == 0) {
+    tokens_pointer = tokens[tokens_pointer].amount;
+  }
+  else {
+    return;
+  }
+}
+
+inline void BfTranspiler::bracket_close() {
+  if (tape[tape_pointer] != 0) {
+    tokens_pointer = tokens[tokens_pointer].amount;
+  }
+  else {
+    return;
+  }
+}
+*/
