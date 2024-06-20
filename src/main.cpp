@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <stack>
+
 #include "transpiler.h"
 
 
@@ -35,47 +36,50 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  // ---- Parser happens below this point ----
+  /* ---- Parser happens below this point ----  */
 
   BfTranspiler transpiler;
 
-  std::stack<unsigned int> bracket_stack;  // Keeps track of previous brackets
-  char c;                             // char of holding
+  std::stack<unsigned int> bracket_stack; // Keeps track of previous brackets
+  char c;                                 // char of holding
   unsigned int total_tokens = 0;
 
   while (!in_file.get(c).eof()) {
-    char buffer_c = c;
-    unsigned int amount = 1;
+    char buffer_character = c;
+    unsigned int single_token_amount = 1;
 
     if (IS_IO_CHAR(c)) {
-      transpiler.tokens.push_back(BfToken {.amount = amount, .type = buffer_c});
+      // . & ,
+      // Multiple separate in/out instructions should be kept separate
+      transpiler.tokens.push_back(BfToken {.amount = single_token_amount, .type = buffer_character});
       total_tokens++;
     }
     else if (IS_MULTI_OPERATOR_CHAR(c)) {
+      // Every other instruction except for [ & ]
       while (!in_file.get(c).eof()) {
         if (!IS_VALID_CHAR(c)) {
           // Text, whitespace, whatever. Don't need it. Skip.
           continue;
         }
         else {
-          if (c == buffer_c) {
+          if (c == buffer_character) {
             // Minor optimization. The parser merges consecutive equal tokens into one
             // So ++++++++ would be one {'+', 8} token instead of 8 '+' tokens
-            amount++;
+            single_token_amount++;
             continue;
           }
           else {
             // Put it back where it came from
             in_file.putback(c);
             // And insert what we must
-            transpiler.tokens.push_back(BfToken {.amount = amount, .type = buffer_c});
+            transpiler.tokens.push_back(BfToken {.amount = single_token_amount, .type = buffer_character});
             total_tokens++;
             break;
           }
         }
       }
       if (in_file.eof()) {
-        transpiler.tokens.push_back(BfToken {.amount = amount, .type = buffer_c});
+        transpiler.tokens.push_back(BfToken {.amount = single_token_amount, .type = buffer_character});
         total_tokens++;
       }
     }
@@ -83,7 +87,7 @@ int main(int argc, char* argv[]) {
       if (c == '[') {
         BfToken new_token = {
           .amount = 0,
-          .type = buffer_c
+          .type = buffer_character
         };
         transpiler.tokens.push_back(new_token);
         bracket_stack.push(total_tokens);

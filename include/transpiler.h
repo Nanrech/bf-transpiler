@@ -32,6 +32,6 @@ class BfTranspiler {
   private:
     size_t tokens_pointer;  // For .tokens
   public:
-    std::vector<BfToken> tokens;  // No encapsulation needed
+    std::vector<BfToken> tokens;
     void transpile(std::ofstream &out_file);
 };
