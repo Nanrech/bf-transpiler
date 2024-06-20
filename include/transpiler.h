@@ -22,8 +22,6 @@ int main(void) {\n\
   return 0;\n\
 }\n"
 
-using namespace std;
-
 
 typedef struct {
   unsigned int amount;  // Number of times this instruction is repeated
@@ -34,6 +32,6 @@ class BfTranspiler {
   private:
     size_t tokens_pointer;  // For .tokens
   public:
-    vector<BfToken> tokens;  // No encapsulation needed
-    void transpile(ofstream &out_file);
+    std::vector<BfToken> tokens;  // No encapsulation needed
+    void transpile(std::ofstream &out_file);
 };

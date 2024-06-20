@@ -3,36 +3,34 @@
 #include <stack>
 #include "transpiler.h"
 
-using namespace std;
-
 
 // This, obviously, reuses much of the code from my interpreter.
 int main(int argc, char* argv[]) {
   // Don't look here, it's ugly
   if (argc < 2) {
-    cout << "Usage: " << argv[0] << " <program.bf>\nMissing bf file." << endl;
+    std::cout << "Usage: " << argv[0] << " <program.bf>\nMissing bf file." << std::endl;
     return 1;
   }
 
   // Standard error checking
-  ifstream in_file(argv[1]);
+  std::ifstream in_file(argv[1]);
   if (in_file.fail()) {
-    cout << "Error reading " << argv[1] << endl;
+    std::cout << "Error reading " << argv[1] << std::endl;
     return 1;
   }
 
-  ofstream out_file;
+  std::ofstream out_file;
   if (argc > 2) {
     out_file.open(argv[2]);
     if (out_file.fail()) {
-      cout << "Error opening/creating" << argv[2] << endl;
+      std::cout << "Error opening/creating" << argv[2] << std::endl;
       return 1;
     }
   }
   else {
     out_file.open("out.c");
     if (out_file.fail()) {
-      cout << "Error opening/creating fallback out.c file. Check the program's permissions and open file handles and try again." << endl;
+      std::cout << "Error opening/creating fallback out.c file. Check the program's permissions and open file handles and try again." << std::endl;
       return 1;
     }
   }
@@ -41,7 +39,7 @@ int main(int argc, char* argv[]) {
 
   BfTranspiler transpiler;
 
-  stack<unsigned int> bracket_stack;  // Keeps track of previous brackets
+  std::stack<unsigned int> bracket_stack;  // Keeps track of previous brackets
   char c;                             // char of holding
   unsigned int total_tokens = 0;
 
@@ -93,7 +91,7 @@ int main(int argc, char* argv[]) {
       }
       else {
         if (bracket_stack.empty()) {
-          cout << "Invalid syntax (bracket mismatch)" << endl;
+          std::cout << "Invalid syntax (bracket mismatch)" << std::endl;
           exit(-1);
         }
         BfToken new_token = {
