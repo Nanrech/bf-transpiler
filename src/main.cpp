@@ -111,10 +111,16 @@ int main(int argc, char* argv[]) {
   in_file.close();
 
   // We're done with the in_file. Now we hand out_file over to the transpiler
-  out_file << TEMPLATE_CREDITS;
-  out_file << TEMPLATE_START;
+  out_file << BFC_TEMPLATE::credits;
+  out_file << BFC_TEMPLATE::includes;
+  out_file << BFC_TEMPLATE::tape_length;
+  out_file << BFC_TEMPLATE::main_start;
+  out_file << BFC_TEMPLATE::main_tape;
+  out_file << BFC_TEMPLATE::generated_begin;
+
   transpiler.transpile(out_file);
-  out_file << TEMPLATE_END;
+
+  out_file << BFC_TEMPLATE::generated_end;
 
   // Done!
   out_file.close();
