@@ -3,4 +3,5 @@
 *.exe
 *.bf
 *.c
+.gitignore
 kill_all_objs.bat
