@@ -1,6 +1,0 @@
-/.vscode
-/obj
-*.exe
-*.bf
-*.c
-kill_all_objs.bat
