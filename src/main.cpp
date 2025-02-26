@@ -1,129 +1,194 @@
+#include <cstdint>
 #include <iostream>
 #include <fstream>
+#include <vector>
 #include <stack>
+#include <array>
 
-#include "transpiler.h"
+#define MAX_TAPE_SIZE 30000
+#define IS_CHAR_VALID(currentChar) (currentChar == '>' || currentChar == '<' || currentChar == '+' || currentChar == '-' || currentChar == '.' || currentChar == ',' || currentChar == '[' || currentChar == ']')
+#define IS_CHAR_MULTI(currentChar) (currentChar == '>' || currentChar == '<' || currentChar == '+' || currentChar == '-')
+
+typedef struct Token {
+  char type;
+  size_t data; // index to matching jump instruction OR nº times command should be repeated
+} Token;
 
 
-// This, obviously, reuses much of the code from my interpreter.
 int main(int argc, char* argv[]) {
-  // Don't look here, it's ugly
-  if (argc < 2) {
-    std::cout << "Usage: " << argv[0] << " <program.bf>\nMissing bf file." << std::endl;
+  // Input & output files provided?
+  if (argc < 3) {
+    std::cout << "Error: No input/output files.\nUsage: " << argv[0] << " <program.bf> <out.c>" << std::endl;
     return 1;
   }
 
-  // Standard error checking
-  std::ifstream in_file(argv[1]);
-  if (in_file.fail()) {
-    std::cout << "Error reading " << argv[1] << std::endl;
+  // Input file exists?
+  std::ifstream inFile(argv[1]);
+
+  if (inFile.fail()) {
+    std::cout << "Error: Couldn't read input file " << argv[1] << std::endl;
     return 1;
   }
 
-  std::ofstream out_file;
-  if (argc > 2) {
-    out_file.open(argv[2]);
-    if (out_file.fail()) {
-      std::cout << "Error opening/creating" << argv[2] << std::endl;
-      return 1;
-    }
-  }
-  else {
-    out_file.open("out.c");
-    if (out_file.fail()) {
-      std::cout << "Error opening/creating fallback out.c file. Check the program's permissions and open file handles and try again." << std::endl;
-      return 1;
-    }
+  // Output file can be created?
+  std::ofstream outFile(argv[2]);
+
+  if (outFile.fail()) {
+    std::cout << "Error: Couldn't create output file " << argv[2] << std::endl;
+    return 1;
   }
 
-  /* ---- Parser happens below this point ----  */
+  // ---- Read file ----
+  // First pass, get amount of tokens
+  char currentChar;
+  char lastChar = '\0';
 
-  BfTranspiler transpiler;
+  int tokenAmount = 0;
 
-  std::stack<unsigned int> bracket_stack; // Keeps track of previous brackets
-  char c;                                 // char of holding
-  unsigned int total_tokens = 0;
+  while (inFile.get(currentChar)) {
+    if (!IS_CHAR_VALID(currentChar)) { continue; }
 
-  while (!in_file.get(c).eof()) {
-    char buffer_character = c;
-    unsigned int single_token_amount = 1;
-
-    if (IS_IO_CHAR(c)) {
-      // . & ,
-      // Multiple separate in/out instructions should be kept separate
-      transpiler.tokens.push_back(BfToken {.amount = single_token_amount, .type = buffer_character});
-      total_tokens++;
+    // Some successive characters are just stored as a single command
+    // Their 'data' field represents how many times it should be executed
+    if (!IS_CHAR_MULTI(currentChar) || currentChar != lastChar) {
+      tokenAmount++;
     }
-    else if (IS_MULTI_OPERATOR_CHAR(c)) {
-      // Every other instruction except for [ & ]
-      while (!in_file.get(c).eof()) {
-        if (!IS_VALID_CHAR(c)) {
-          // Text, whitespace, whatever. Don't need it. Skip.
-          continue;
-        }
-        else {
-          if (c == buffer_character) {
-            // Minor optimization. The parser merges consecutive equal tokens into one
-            // So ++++++++ would be one {'+', 8} token instead of 8 '+' tokens
-            single_token_amount++;
-            continue;
-          }
-          else {
-            // Put it back where it came from
-            in_file.putback(c);
-            // And insert what we must
-            transpiler.tokens.push_back(BfToken {.amount = single_token_amount, .type = buffer_character});
-            total_tokens++;
-            break;
-          }
-        }
-      }
-      if (in_file.eof()) {
-        transpiler.tokens.push_back(BfToken {.amount = single_token_amount, .type = buffer_character});
-        total_tokens++;
-      }
+
+    lastChar = currentChar;
+  }
+
+  // ---- init command storage ----
+  std::vector<Token> commands;
+  commands.resize(tokenAmount);
+
+  // Rewind file
+  inFile.clear();
+  inFile.seekg(0);
+
+  // ---- Store tokens ----
+  // Second pass, store tokens
+  size_t i = 0;
+  size_t data = 1;
+  lastChar = '\0';
+  std::stack<size_t> bracketStack;
+
+  while (inFile.get(currentChar)) {
+    if (!IS_CHAR_VALID(currentChar)) { continue; }
+
+    if (currentChar == '[') {
+      bracketStack.push(i);
+      data = 1;
     }
-    else if (IS_BRACKET_CHAR(c)) {
-      if (c == '[') {
-        BfToken new_token = {
-          .amount = 0,
-          .type = buffer_character
-        };
-        transpiler.tokens.push_back(new_token);
-        bracket_stack.push(total_tokens);
-        total_tokens++;
+    else if (currentChar == ']') {
+      if (bracketStack.empty()) {
+        std::cout << "Error in input file at pos. " << inFile.tellg() << std::endl;
+        throw std::runtime_error("Unmatched Closing Bracket");
+      }
+      // Assign last opening bracket's index to this one
+      data = bracketStack.top();
+      bracketStack.pop();
+      // Assign this one's index to last bracket
+      commands[data].data = i;
+    }
+    else {
+      // Optimize
+      if (IS_CHAR_MULTI(currentChar) && currentChar == lastChar) {
+        commands[i - 1].data += 1;
+        continue;
       }
       else {
-        if (bracket_stack.empty()) {
-          std::cout << "Invalid syntax (bracket mismatch)" << std::endl;
-          exit(-1);
-        }
-        BfToken new_token = {
-          .amount = 0,
-          .type = c
-        };
-        transpiler.tokens.push_back(new_token);
-        bracket_stack.pop();
-        total_tokens++;
+        data = 1;
       }
     }
+
+    lastChar = currentChar;
+    commands[i++] = Token {
+      .type = currentChar,
+      .data = data,
+    };
   }
-  in_file.close();
 
-  // We're done with the in_file. Now we hand out_file over to the transpiler
-  out_file << BFC_TEMPLATE::credits;
-  out_file << BFC_TEMPLATE::includes;
-  out_file << BFC_TEMPLATE::tape_length;
-  out_file << BFC_TEMPLATE::main_start;
-  out_file << BFC_TEMPLATE::main_tape;
-  out_file << BFC_TEMPLATE::generated_begin;
+  // Check for overflow
+  if (bracketStack.size() != 0) {
+    std::cout << "Error in input file" << std::endl;
+    throw std::runtime_error("Unmatched Opening Bracket");
+  }
 
-  transpiler.transpile(out_file);
+  // ---- Close input file ----
+  inFile.close();
 
-  out_file << BFC_TEMPLATE::generated_end;
+  // ---- Insert template code ----
+  outFile << "/* THE FOLLOWING SOURCE FILE WAS AUTOMATICALLY GENERATED USING https://github.com/Nanrech/brainfuck-transpiler */\n"
+          << "#include <stdio.h>\n#include <stdlib.h>\n\n"
+          << "#define TAPE_LENGTH 30000\n\n\n"
+          << "int main(void) {\n  unsigned char c;\n  size_t ptr = 0;\n"
+          << "  unsigned char* mem = calloc(TAPE_LENGTH, sizeof(unsigned char));\n\n  if (mem == NULL) {\n    puts(\"ERROR ALLOCATING TAPE\");\n    return 1;\n  }\n\n";
 
-  // Done!
-  out_file.close();
+  // ---- Generate output code ----
+  int indent = 2;
+
+  for (auto c : commands) {
+    outFile << std::string(indent, ' ');
+
+    switch (c.type) {
+
+      case '>': {
+        if (c.data == 1) {
+          outFile << "ptr++;\n";
+          break;
+        }
+        outFile << "ptr += " << c.data << ";\n";
+        break;
+      }
+      case '<': {
+        if (c.data == 1) {
+          outFile << "ptr--;\n";
+          break;
+        }
+        outFile << "ptr -= " << c.data << ";\n";
+        break;
+      }
+      case '+': {
+        if (c.data == 1) {
+          outFile << "mem[ptr]++;\n";
+          break;
+        }
+        outFile << "mem[ptr] += " << c.data << ";\n";
+        break;
+      }
+      case '-': {
+        if (c.data == 1) {
+          outFile << "mem[ptr]--;\n";
+          break;
+        }
+        outFile << "mem[ptr] -= " << c.data << ";\n";
+        break;        break;
+      }
+      case '.': {
+        outFile << "putchar(mem[ptr]);\n";
+        break;
+      }
+      case ',': {
+        outFile << "scanf(\"%c\", &c);\n" << std::string(indent, ' ') << "mem[ptr] = c;\n";
+        break;
+      }
+      case '[': {
+        outFile << "while (mem[ptr] != 0) {\n";
+        indent += 2;
+        break;
+      }
+      case ']': {
+        outFile.seekp(-2, std::ios_base::cur);
+        outFile << "}\n";
+        indent -= 2;
+        break;
+      }
+      default:
+        break;
+    }
+  }
+
+  outFile << "}\n";
 
   return 0;
 }
