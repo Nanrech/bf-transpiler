@@ -122,7 +122,8 @@ int main(int argc, char* argv[]) {
           << "#include <stdio.h>\n#include <stdlib.h>\n\n"
           << "#define TAPE_LENGTH 30000\n\n\n"
           << "int main(void) {\n  unsigned char c;\n  size_t ptr = 0;\n"
-          << "  unsigned char* mem = calloc(TAPE_LENGTH, sizeof(unsigned char));\n\n  if (mem == NULL) {\n    puts(\"ERROR ALLOCATING TAPE\");\n    return 1;\n  }\n\n";
+          << "  unsigned char* mem = calloc(TAPE_LENGTH, sizeof(unsigned char));\n\n"
+          << "  if (mem == NULL) {\n    puts(\"ERROR ALLOCATING TAPE\");\n    return 1;\n  }\n\n";
 
   // ---- Generate output code ----
   int indent = 2;
@@ -188,7 +189,9 @@ int main(int argc, char* argv[]) {
     }
   }
 
+  // ---- Close output file ---
   outFile << "}\n";
+  outFile.close();
 
   return 0;
 }
